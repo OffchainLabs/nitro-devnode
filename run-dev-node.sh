@@ -1,9 +1,39 @@
 #!/bin/bash
 
+NITRO_NODE_VERSION="v3.2.1-d81324d"  # <-- only update this when you need a new version
+
+# By default, use nitro docker image. If "--stylus" is passed, build the image with stylus dev dependencies
+STYLUS_MODE="false"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --stylus)
+      STYLUS_MODE="true"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "$STYLUS_MODE" == "true" ]]; then
+  echo "Building Nitro node with Stylus dev dependencies..."
+  # Build using the specific version
+  docker build . --target nitro-node-stylus-dev \
+  --tag nitro-node-stylus-dev  -f stylus-dev/Dockerfile \
+  --build-arg NITRO_NODE_VERSION="${NITRO_NODE_VERSION}"
+fi
+
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name nitro-dev -p 8547:8547 offchainlabs/nitro-node:v3.2.1-d81324d --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
-
+if [[ "$STYLUS_MODE" == "true" ]]; then
+  docker run --rm --name nitro-dev -p 8547:8547 nitro-node-stylus-dev --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
+else
+  docker run --rm --name nitro-dev -p 8547:8547 offchainlabs/nitro-node:"${NITRO_NODE_VERSION}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
+fi
 # Wait for the node to initialize
 echo "Waiting for the Nitro node to initialize..."
 
