@@ -29,6 +29,13 @@ if [[ "$STYLUS_MODE" == "true" ]]; then
   TARGET_IMAGE="nitro-node-stylus-dev"
 fi
 
+# Check whether contracts submodule was initialized
+if [[ ! -d "./contracts/src" ]]; then
+  echo "Error: Contracts submodule not found. Initialize it with the following command:"
+  echo "git submodule update --init --recursive"
+  exit 1
+fi
+
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
 docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
@@ -92,7 +99,20 @@ if [[ "$registration_output" == *"error"* ]]; then
   echo "$registration_output"
   exit 1
 fi
+echo "Cache Manager deployed and registered successfully"
+
+# Deploy StylusDeployer
+deployer_output=$(forge create --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
+    --out ./contracts/out  --cache-path ./contracts/cache -r http://127.0.0.1:8547 \
+    ./contracts/src/stylus/StylusDeployer.sol:StylusDeployer)
+deployer_address=$(echo "$deployer_output" | awk '/Deployed to/ {print $3}')
+if [[ -z "$deployer_address" ]]; then
+  echo "Error: Failed to deploy StylusDeployer contract. Full output:"
+  echo "$deployer_output"
+  exit 1
+fi
+echo "StylusDeployer deployed at address: $deployer_address"
 
 # If no errors, print success message
-echo "Cache Manager deployed and registered successfully. Nitro node is running..."
+echo "Nitro node is running..."
 wait  # Keep the script alive and the node running
