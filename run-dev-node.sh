@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NITRO_NODE_VERSION="v3.2.1-d81324d"  # <-- only update this when you need a new version
+NITRO_NODE_VERSION="v3.5.3-0a9c975"  # <-- only update this when you need a new version
 TARGET_IMAGE="offchainlabs/nitro-node:${NITRO_NODE_VERSION}"
 # By default, use nitro docker image. If "--stylus" is passed, build the image with stylus dev dependencies
 STYLUS_MODE="false"
