@@ -36,9 +36,22 @@ if [[ ! -d "./contracts/src" ]]; then
   exit 1
 fi
 
+# Prepare nitro args.
+NITRO_ARGS=(
+  --dev
+  --http.addr "0.0.0.0"
+  --http.api "net,web3,eth,debug"
+)
+
+if [[ "${NITRO_DEV_ACCOUNT:-}" != "" ]]; then
+  NITRO_ARGS+=(
+    --init.dev-init-address "$NITRO_DEV_ACCOUNT"
+  )
+fi
+
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
+docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" "${NITRO_ARGS[@]}" &
 
 # Wait for the node to initialize
 echo "Waiting for the Nitro node to initialize..."
