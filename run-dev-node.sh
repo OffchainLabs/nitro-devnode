@@ -36,9 +36,22 @@ if [[ ! -d "./contracts/src" ]]; then
   exit 1
 fi
 
+# Prepare nitro args.
+NITRO_ARGS=(
+  --dev
+  --http.addr "0.0.0.0"
+  --http.api "net,web3,eth,debug"
+)
+
+if [[ "${NITRO_DEV_ACCOUNT:-}" != "" ]]; then
+  NITRO_ARGS+=(
+    --init.dev-init-address "$NITRO_DEV_ACCOUNT"
+  )
+fi
+
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
+docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" "${NITRO_ARGS[@]}" &
 
 # Wait for the node to initialize
 echo "Waiting for the Nitro node to initialize..."
@@ -62,15 +75,17 @@ else
   exit 1
 fi
 
+NITRO_DEV_PRIVATE_KEY="${NITRO_DEV_PRIVATE_KEY:-"0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659"}"
+
 # Make the caller a chain owner
 echo "Setting chain owner to pre-funded dev account..."
 cast send 0x00000000000000000000000000000000000000FF "becomeChainOwner()" \
-  --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
+  --private-key "$NITRO_DEV_PRIVATE_KEY" \
   --rpc-url http://127.0.0.1:8547
 
 # Deploy Cache Manager Contract
 echo "Deploying Cache Manager contract..."
-deploy_output=$(cast send --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
+deploy_output=$(cast send --private-key "$NITRO_DEV_PRIVATE_KEY" \
   --rpc-url http://127.0.0.1:8547 \
   --create 0x60a06040523060805234801561001457600080fd5b50608051611d1c61003060003960006105260152611d1c6000f3fe)
 
@@ -88,7 +103,7 @@ echo "Cache Manager contract deployed at address: $contract_address"
 
 # Register the deployed Cache Manager contract
 echo "Registering Cache Manager contract as a WASM cache manager..."
-registration_output=$(cast send --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
+registration_output=$(cast send --private-key "$NITRO_DEV_PRIVATE_KEY" \
   --rpc-url http://127.0.0.1:8547 \
   0x0000000000000000000000000000000000000070 \
   "addWasmCacheManager(address)" "$contract_address")
@@ -102,7 +117,7 @@ fi
 echo "Cache Manager deployed and registered successfully"
 
 # Deploy StylusDeployer
-deployer_output=$(forge create --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
+deployer_output=$(forge create --private-key "$NITRO_DEV_PRIVATE_KEY" \
     --out ./contracts/out  --cache-path ./contracts/cache -r http://127.0.0.1:8547 \
     ./contracts/src/stylus/StylusDeployer.sol:StylusDeployer)
 deployer_address=$(echo "$deployer_output" | awk '/Deployed to/ {print $3}')
