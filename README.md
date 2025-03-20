@@ -20,6 +20,7 @@ In `--dev` mode, the script uses a pre-funded development account by default. Th
 You don’t need to set up a private key manually unless you prefer using your own key.
 
 If needed, pass the account address at the `NITRO_DEV_ACCOUNT` env var to fund a different account.
+Set the `NITRO_DEV_PRIVATE_KEY` to the corresponding private key.
 
 ## Chain ownership in `--dev` mode
 
