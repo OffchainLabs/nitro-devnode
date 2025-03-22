@@ -104,6 +104,7 @@ echo "Cache Manager deployed and registered successfully"
 # Deploy StylusDeployer
 deployer_output=$(forge create --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 \
     --out ./contracts/out  --cache-path ./contracts/cache -r http://127.0.0.1:8547 \
+    --broadcast \
     ./contracts/src/stylus/StylusDeployer.sol:StylusDeployer)
 deployer_address=$(echo "$deployer_output" | awk '/Deployed to/ {print $3}')
 if [[ -z "$deployer_address" ]]; then
