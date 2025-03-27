@@ -48,7 +48,7 @@ To use the script, follow these steps:
 1. Clone the repository:
 
 ```bash
-git clone --recurse-submodules https://github.com/OffchainLabs/nitro-devnode.git
+git clone https://github.com/OffchainLabs/nitro-devnode.git
 cd nitro-devnode
 ```
 
