@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NITRO_NODE_VERSION="v3.5.5-90ee45c"  # <-- only update this when you need a new version
+NITRO_NODE_VERSION="v3.7.1-926f1ab"  # <-- only update this when you need a new version
 TARGET_IMAGE="offchainlabs/nitro-node:${NITRO_NODE_VERSION}"
 
 RPC=http://127.0.0.1:8547
@@ -8,14 +8,14 @@ PRIVATE_KEY=0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
 CREATE2_FACTORY=0x4e59b44847b379578588920ca78fbf26c0b4956c
 SALT=0x0000000000000000000000000000000000000000000000000000000000000000
 
-# By default, use nitro docker image. If "--stylus" is passed, build the image with stylus dev dependencies
-STYLUS_MODE="false"
+EXTRA_ARGS=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --stylus)
-      STYLUS_MODE="true"
+    --contract-size)
+      shift
+      EXTRA_ARGS="${EXTRA_ARGS} --init.dev-max-code-size $1"
       shift
       ;;
     *)
@@ -25,19 +25,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$STYLUS_MODE" == "true" ]]; then
-  echo "Building Nitro node with Stylus dev dependencies..."
-  # Build using the specific version
-  docker build . --target nitro-node-stylus-dev \
-  --tag nitro-node-stylus-dev  -f stylus-dev/Dockerfile \
-  --build-arg NITRO_NODE_VERSION="${NITRO_NODE_VERSION}"
-
-  TARGET_IMAGE="nitro-node-stylus-dev"
-fi
-
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug &
+docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug $EXTRA_ARGS &
 
 # Kill background processes when exiting
 trap 'kill $(jobs -p) 2>/dev/null' EXIT
