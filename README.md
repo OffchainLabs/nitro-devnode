@@ -65,6 +65,30 @@ The script will:
 - Deploy the Stylus `Cache Manager` contract on the local Nitro network.
 - Register the `Cache Manager` contract as a WASM cache manager.
 
+### Environment Variables
+
+You can override the default behavior of the script using environment variables:
+
+- **`NITRO_NODE_VERSION`**  
+  Version tag of the Nitro node to run.  
+  Default: `v3.7.1-926f1ab`
+
+- **`TARGET_IMAGE`**  
+  Full Docker image reference for the Nitro node.  
+  Default: `offchainlabs/nitro-node:${NITRO_NODE_VERSION}`
+
+#### Examples
+
+Use a different Nitro node version:
+```bash
+NITRO_NODE_VERSION=v3.8.0 ./run-dev-node.sh
+```
+
+Use a custom Docker image:
+```bash
+TARGET_IMAGE=myrepo/custom-nitro:latest ./run-dev-node.sh
+```
+
 ## Note on `--dev` mode
 
 The script starts the Nitro node in `--dev` mode, which does not persist chain data. Each time you restart the node, the chain state resets. This is suitable for testing and development purposes, but for persistent chain data, consider using a full node setup instead of `--dev`.

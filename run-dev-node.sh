@@ -1,7 +1,8 @@
 #!/bin/bash
 
-NITRO_NODE_VERSION="v3.7.1-926f1ab"  # <-- only update this when you need a new version
-TARGET_IMAGE="offchainlabs/nitro-node:${NITRO_NODE_VERSION}"
+# Allow overrides from the environment or CLI
+NITRO_NODE_VERSION="${NITRO_NODE_VERSION:-v3.7.1-926f1ab}"
+TARGET_IMAGE="${TARGET_IMAGE:-offchainlabs/nitro-node:${NITRO_NODE_VERSION}}"
 
 RPC=http://127.0.0.1:8547
 PRIVATE_KEY=0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
