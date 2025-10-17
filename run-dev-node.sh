@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
 
 # Allow overrides from the environment or CLI
 NITRO_NODE_VERSION="${NITRO_NODE_VERSION:-v3.7.1-926f1ab}"
 TARGET_IMAGE="${TARGET_IMAGE:-offchainlabs/nitro-node:${NITRO_NODE_VERSION}}"
+CONTAINER_NAME=nitro-dev
 
 RPC=http://127.0.0.1:8547
 PRIVATE_KEY=0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
@@ -10,6 +12,14 @@ CREATE2_FACTORY=0x4e59b44847b379578588920ca78fbf26c0b4956c
 SALT=0x0000000000000000000000000000000000000000000000000000000000000000
 
 EXTRA_ARGS=""
+
+# Clean up docker container on shutdown signals 
+cleanup() {
+  echo "Shutting down Docker container '${CONTAINER_NAME}'..."
+  docker stop -t 30 "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+  docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+}
+trap cleanup INT TERM EXIT
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -26,9 +36,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Ensure no stale container is hanging around
+docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name nitro-dev -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug $EXTRA_ARGS &
+docker run --rm --name "${CONTAINER_NAME}" -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug $EXTRA_ARGS &
 
 # Kill background processes when exiting
 trap 'kill $(jobs -p) 2>/dev/null' EXIT
@@ -118,6 +131,6 @@ if [ "$(cast code -r $RPC $deployer_address)" == "0x" ]; then
 fi
 echo "StylusDeployer deployed at address: $deployer_address"
 
-# If no errors, print success message
-echo "Nitro node is running..."
-wait  # Keep the script alive and the node running
+echo "Nitro node is running... (press Ctrl-C to stop)"
+# Keep the script alive so cleanup runs on exit
+wait
