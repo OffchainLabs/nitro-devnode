@@ -43,7 +43,7 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 # Start Nitro dev node in the background
 echo "Starting Nitro dev node..."
-docker run --rm --name "${CONTAINER_NAME}" -p 8547:8547 "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug $EXTRA_ARGS &
+docker run --rm --name "${CONTAINER_NAME}" -p 8547:8547 -p 8548:8548  "${TARGET_IMAGE}" --dev --http.addr 0.0.0.0 --http.api=net,web3,eth,debug $EXTRA_ARGS --ws.addr 0.0.0.0 --ws.api=net,web3,eth,debug --execution.sequencer.max-block-speed=100ms --execution.sequencer.queue-timeout=20s $EXTRA_ARGS &
 
 # Wait for the node to initialize
 echo "Waiting for the Nitro node to initialize..."
@@ -79,7 +79,7 @@ cast send -r $RPC --private-key $PRIVATE_KEY 0x000000000000000000000000000000000
 
 # Deploy CREATE2 factory
 echo "Deploying the CREATE2 factory"
-cast send --rpc-url $RPC --private-key $PRIVATE_KEY --value "1 ether" 0x3fab184622dc19b6109349b94811493bf2a45362
+cast send --rpc-url $RPC --private-key $PRIVATE_KEY --value "100 ether" 0x3fab184622dc19b6109349b94811493bf2a45362
 cast publish --rpc-url $RPC 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222
 if [ "$(cast code -r $RPC $CREATE2_FACTORY)" == "0x" ]; then
   echo "Failed to deploy CREATE2 factory"
